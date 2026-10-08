@@ -1,0 +1,537 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Fretattack</title>
+<style>
+body{margin:0;background:#0b1020;color:#f5f7fb;font-family:Arial,sans-serif}.app{max-width:1150px;margin:auto;padding:24px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}button,select{background:#151d31;color:#fff;border:1px solid #34405b;border-radius:10px;padding:11px 15px}button{cursor:pointer;font-weight:bold}.tab.active,.start{background:#5eead4;color:#07111b}.card{background:#151d31;border:1px solid #303b55;border-radius:18px;padding:18px;margin-bottom:16px}.page{display:none}.page.active{display:block}.controls{display:flex;gap:12px;flex-wrap:wrap}.controls label{color:#9da8bd}.controls>div{min-width:180px}.controls select{display:block;width:100%;margin-top:5px}.boardwrap{overflow-x:auto}.board{min-width:930px}.row{display:grid;grid-template-columns:42px repeat(12,1fr);min-height:50px}.cell{border-right:1px solid #303b55;border-bottom:1px solid #303b55;display:flex;align-items:center;justify-content:center;position:relative}.cell:not(.name):before{content:"";position:absolute;left:0;right:0;height:2px;background:#6b7280}.row:first-child{min-height:32px}.row:first-child .cell{border-right:0;border-bottom:0;background:transparent;color:#9da8bd;font-size:12px}.cell span{position:relative;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;opacity:.22}.cell.hit span{background:#60a5fa;color:#07111b;opacity:1}.cell.root span{background:#fbbf24}.name{background:#0d1424;font-weight:bold}.muted{color:#9da8bd}.summary{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.big{font-size:42px;font-weight:bold}.chip{display:inline-block;background:#22304b;padding:8px 11px;border-radius:10px;margin:4px;font-weight:bold}.hum{text-align:center}.pitch{font-size:64px;font-weight:bold;min-height:76px}.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.notice{line-height:1.5}.practicegrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.box{background:#10182b;border:1px solid #303b55;border-radius:12px;padding:15px}@media(max-width:700px){.practicegrid{grid-template-columns:1fr}}
+
+.practice-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}.ptab{cursor:pointer}.ptab.active{background:#60a5fa;color:#07111b}
+.exercise{display:none}.exercise.active{display:block}.challenge{font-size:24px;font-weight:bold;margin:10px 0}.answer{display:none;margin-top:14px}.answer.show{display:block}
+.challenge-note{font-size:62px;font-weight:bold;color:#fbbf24;margin:12px 0}.counter{font-size:46px;font-weight:bold}.tempo{font-size:52px;font-weight:bold;margin:8px 0}
+.range{width:100%;max-width:420px}.checkrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.tiny{font-size:12px;color:#9da8bd}
+.metronome-light{width:42px;height:42px;border-radius:50%;background:#303b55;margin:12px auto}.metronome-light.on{background:#fbbf24}
+.caged-solo span{background:#5eead4!important;color:#07111b!important;opacity:1!important}
+.caged-solo-root span{background:#fbbf24!important}
+.caged-chord span{outline:3px solid #fff;outline-offset:1px}
+.app-top{display:flex;justify-content:flex-start;align-items:center;gap:12px}.app-top h1{margin:0}#menuToggle{font-size:26px;min-width:48px;min-height:48px;flex-shrink:0}#menuToggle{order:-1}.app-menu{position:fixed;inset:0;z-index:1000;background:transparent}.app-menu[hidden]{display:none}.menu-shade{position:absolute;inset:0;background:rgba(0,0,0,.65);border:0;border-radius:0;width:100%;height:100%;padding:0}.menu-drawer{position:absolute;top:0;bottom:0;left:0;width:min(310px,82vw);box-sizing:border-box;background:#151d31;border-right:1px solid #34405b;padding:22px 16px;box-shadow:8px 0 35px rgba(0,0,0,.35);overflow-y:auto}.menu-drawer h2{margin:8px 0 22px}.menu-drawer button{width:100%;text-align:left;min-height:48px;margin-bottom:10px}.menu-drawer .menu-close{width:auto;float:right;text-align:center}.menu-drawer .menu-future{color:#9da8bd;font-size:13px;margin-top:22px;padding-top:15px;border-top:1px solid #34405b}body.drawer-open{overflow:hidden}#savedRiffsPage .box{margin:12px 0}#savedRiffsPage audio{max-width:100%}@media(max-width:700px){.app-top h1{font-size:26px}}
+</style></head><body><div class="app"><div class="app-top"><h1>🎸 Fretattack</h1><button type="button" id="menuToggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="appMenu">☰</button></div><nav id="appMenu" class="app-menu" aria-label="Main menu" hidden><button type="button" class="menu-shade" id="menuShade" aria-label="Close menu"></button><div class="menu-drawer"><button type="button" class="menu-close" id="menuClose" aria-label="Close menu">✕</button><h2>Menu</h2><button type="button" id="openSavedRiffs">🎙️ Saved Riffs →</button><p class="menu-future">Settings and account options will be added here later.</p></div></nav><p class="muted">Learn the notes. Hear the notes. Find them yourself.</p>
+<div class="card global-tuning"><div class="controls"><div><label>Instrument</label><select id="instrumentSelect"><option value="guitar">Guitar</option><option value="bass">Bass Guitar</option></select></div><div><label id="tuningLabel">Guitar tuning</label><select id="tuningSelect"></select></div><div><label>Open strings</label><div id="tuningNotes" class="chip" style="margin-top:5px">E A D G B E</div></div></div><div id="customTuning" style="display:none;margin-top:12px">
+<label>Custom tuning — choose each open string</label>
+<div id="customStringControls" class="controls" style="margin-top:8px"></div>
+<p class="tiny">Strings are shown low → high. Changes apply to the entire app immediately.</p>
+</div>
+<p class="tiny">Global settings for the whole app. Change the instrument or tuning here and every fretboard updates.</p></div>
+<div class="tabs"><button class="tab active" data-page="scales">Scales</button><button class="tab" data-page="chords">Chords</button><button class="tab" data-page="hum">🎙️ Hum a Riff</button><button class="tab" data-page="practice">Practice</button><button class="tab" data-page="circle">Circle / Keys</button><button class="tab" data-page="caged">CAGED</button></div>
+
+<section class="page" id="savedRiffsPage"><div class="card"><div class="actions" style="justify-content:space-between;align-items:center"><h2 style="margin:0">🎙️ Saved Riffs</h2><button type="button" id="backToHum">← Hum a Riff</button></div><p class="muted">Your saved recordings and detected notes. Tap an idea to expand it.</p><div id="savedIdeas" class="muted">Loading saved ideas…</div></div></section>
+<section class="page active" id="scales"><div class="card"><h2>Scales</h2><div class="controls"><div><label>Key</label><select id="sr"></select></div><div><label>Scale</label><select id="st"></select></div></div></div><div class="card"><h3 id="sname"></h3>
+<div style="margin:10px 0 14px"><div class="tiny">Scale notes</div><div id="scaleNoteOrder" style="font-weight:700;font-size:17px;margin:5px 0 10px"></div><div class="tiny">Scale degrees</div><div id="scaleDegreeOrder" style="font-weight:700;font-size:17px;margin-top:5px"></div></div>
+<div class="boardwrap"><div class="board" id="sb"></div></div></div></section>
+
+<section class="page" id="chords"><div class="card"><h2>Chords</h2><div class="controls"><div><label>Root</label><select id="cr"></select></div><div><label>Chord type</label><select id="ct"></select></div></div></div><div class="card summary"><span class="big" id="cn"></span><span id="cnotes"></span><span class="muted" id="cf"></span></div><div class="card"><div class="boardwrap"><div class="board" id="cb"></div></div></div></section>
+
+<section class="page" id="hum"><div class="card"><h2>🎙️ Hum a Riff</h2><p class="muted">Hum or sing your idea. The app estimates the notes and maps them onto the fretboard instead of giving you TAB.</p><div class="controls"><div><label>Key</label><select id="hr"></select></div><div><label>Scale</label><select id="ht"></select></div><div><label>Detection</label><select id="hf"><option value="key">Favor selected key</option><option value="raw">Raw pitch</option></select></div></div></div>
+<div class="card hum"><div style="font-size:48px">🎤</div><div class="pitch" id="pitch">—</div><div class="muted" id="freq">Microphone off</div><p id="status" class="muted">Press Start Listening and allow microphone access.</p><div class="actions"><button class="start" id="start">Start Listening</button><button id="stop" disabled>Stop</button><button id="clear">Clear Notes</button></div><h3>Notes I heard</h3><div id="heard" class="muted">Your melody will appear here.</div></div>
+<div class="card" id="savePanel"><h3>Save your riff</h3><p class="muted">Recording stays on this device/browser. Save your voice together with the detected notes and fretboard. No account or upload.</p><div class="controls"><div><label>Idea name</label><input id="ideaName" maxlength="70" placeholder="My riff idea" style="display:block;background:#10182b;color:white;border:1px solid #34405b;border-radius:10px;padding:12px;max-width:95%;margin-top:6px"></div></div><div class="actions" style="margin-top:12px"><button id="saveIdea">Save this idea</button></div><p id="saveStatus" class="muted" aria-live="polite"></p></div><div class="card"><h3>Your melody on the fretboard</h3><p class="muted">These are note locations, not generated TAB. You choose where and how to play them.</p><div class="boardwrap"><div class="board" id="hb"></div></div></div><div class="card notice muted"><b>Prototype:</b> pitch detection is approximate. Hum one clear note at a time. This is meant to get you into the ballpark, then your ear and hands finish the idea.</div></section>
+
+<section class="page" id="practice">
+<div class="card">
+<h2>Practice</h2>
+<p class="muted">Don't just look at the fretboard — train yourself until you don't need the picture.</p>
+<div class="practice-tabs">
+<button class="ptab active" data-ex="targetEx">🎯 Target Notes</button>
+<button class="ptab" data-ex="riffEx">🎸 Riff Builder</button>
+<button class="ptab" data-ex="moveEx">↔ Movement</button>
+<button class="ptab" data-ex="speedEx">⏱ Speed</button>
+</div>
+</div>
+
+<div id="targetEx" class="exercise active">
+<div class="card">
+<h2>🎯 Target Notes</h2>
+<p class="muted">The app gives you a note. Find it on the requested strings before revealing the answer.</p>
+<div class="controls"><div><label>Key</label><select id="prKey"></select></div><div><label>Scale</label><select id="prScale"></select></div><div><label>Strings</label><select id="targetStrings"><option value="all">All 6 strings</option><option value="65">6th + 5th</option><option value="54">5th + 4th</option><option value="43">4th + 3rd</option><option value="32">3rd + 2nd</option><option value="21">2nd + 1st</option></select></div></div>
+<div class="hum"><div class="challenge-note" id="targetNote">G</div><div id="targetInstruction">Find every G on all 6 strings.</div><div class="checkrow" style="justify-content:center"><button class="start" id="newTarget">New Target</button><button id="revealTarget">Reveal Answer</button></div></div>
+</div>
+<div class="card answer" id="targetAnswer"><h3>Answer</h3><div class="boardwrap"><div class="board" id="targetBoard"></div></div></div>
+</div>
+
+<div id="riffEx" class="exercise">
+<div class="card">
+<h2>🎸 Riff Builder</h2><p class="muted">You still write the riff. The app just gives you musical boundaries so you stop falling back on the same shape.</p>
+<div class="controls"><div><label>Key</label><select id="riffKey"></select></div><div><label>Scale</label><select id="riffScale"></select></div><div><label>Difficulty</label><select id="riffDiff"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option></select></div></div>
+<div class="challenge" id="riffChallenge"></div><div class="checkrow"><button class="start" id="newRiff">New Challenge</button><button id="showRiffNotes">Show Available Notes</button></div>
+</div>
+<div class="card answer" id="riffAnswer"><h3>Available notes</h3><div id="riffNoteChips"></div><div class="boardwrap"><div class="board" id="riffBoard"></div></div></div>
+</div>
+
+<div id="moveEx" class="exercise">
+<div class="card">
+<h2>↔ Movement</h2><p class="muted">Train the exact skill of seeing a note on one string and finding it somewhere else without counting A-B-C-D...</p>
+<div class="controls"><div><label>Key</label><select id="moveKey"></select></div><div><label>Scale</label><select id="moveScale"></select></div><div><label>String pair</label><select id="movePair"><option value="65">6th → 5th</option><option value="54">5th → 4th</option><option value="43">4th → 3rd</option><option value="32">3rd → 2nd</option><option value="21">2nd → 1st</option></select></div></div>
+<div class="challenge" id="moveChallenge"></div><div class="checkrow"><button class="start" id="newMove">New Movement</button><button id="revealMove">Reveal Locations</button></div>
+</div>
+<div class="card answer" id="moveAnswer"><div class="boardwrap"><div class="board" id="moveBoard"></div></div></div>
+</div>
+
+<div id="speedEx" class="exercise">
+<div class="card hum">
+<h2>⏱ Speed Trainer</h2><p class="muted">Pick a tempo, play the exercise cleanly, then increase it. Speed only counts when the notes stay clean.</p>
+<div class="tempo"><span id="bpmText">80</span> BPM</div>
+<input class="range" id="bpm" type="range" min="40" max="200" value="80" step="5">
+<div class="metronome-light" id="metroLight"></div>
+<div class="actions"><button class="start" id="metroStart">Start Metronome</button><button id="metroStop">Stop</button><button id="minusBpm">−5 BPM</button><button id="plusBpm">+5 BPM</button></div>
+</div>
+<div class="card"><h3>Speed exercise</h3><div class="controls"><div><label>Key</label><select id="speedKey"></select></div><div><label>Scale</label><select id="speedScale"></select></div><div><label>Notes per click</label><select id="subdivision"><option value="1">1 note</option><option value="2">2 notes</option><option value="4">4 notes</option></select></div></div>
+<div class="challenge" id="speedChallenge"></div><div class="checkrow"><button class="start" id="newSpeed">New Exercise</button><button id="showSpeed">Show Notes</button></div></div>
+<div class="card answer" id="speedAnswer"><div class="boardwrap"><div class="board" id="speedBoard"></div></div></div>
+</div>
+</section>
+</div><section id="circle" class="page"><div class="card"><h2>Circle of Fifths</h2><p class="muted">Outer ring: major keys. Inner ring: relative minor keys. Select a key to explore its chords.</p><div style="display:flex;gap:16px;flex-wrap:wrap"><div style="flex:1 1 300px"><div id="circleWheel" style="position:relative;max-width:390px;aspect-ratio:1;margin:auto"></div></div><div style="flex:1 1 300px"><label>Key</label><select id="circleKey"></select><h3 id="circleTitle"></h3><div class="tiny">Scale notes</div><div id="circleNotes" style="font-weight:700;margin:5px 0 12px"></div><div class="tiny">Relative minor</div><div id="circleRelative" style="font-weight:700;margin:5px 0 12px"></div><div class="tiny">Major key chord order</div><div style="font-weight:700;margin:5px 0 6px">I — ii — iii — IV — V — vi — vii°</div><div id="circleChords" style="font-weight:700;margin:5px 0 12px;line-height:1.8"></div><div class="tiny">Relative minor chord order</div><div style="font-weight:700;margin:5px 0 6px">i — ii° — III — iv — v — VI — VII</div><div id="circleMinorChords" style="font-weight:700;margin:5px 0 12px;line-height:1.8"></div></div></div></div></section><section id="caged" class="page"><div class="card"><h2>CAGED System</h2><p class="muted">See major and minor chord forms with nearby soloing notes. Gold = root, blue = chord tone, teal = scale note.</p><div class="controls"><div><label>Chord root<select id="cagedRoot"><option>C</option><option>C♯</option><option>D</option><option>D♯</option><option>E</option><option>F</option><option>F♯</option><option>G</option><option>G♯</option><option>A</option><option>A♯</option><option>B</option></select></label></div><div><label>Quality<select id="cagedQuality"><option value="major">Major</option><option value="minor">Minor</option></select></label></div><div><label>Form<select id="cagedShape"><option>C</option><option>A</option><option>G</option><option>E</option><option>D</option></select></label></div><div><label>Solo notes<select id="cagedScale"><option value="pent">Major pentatonic</option><option value="major">Major scale</option><option value="off">Chord only</option></select></label></div></div><h3 id="cagedTitle"></h3><p id="cagedDetails" class="muted"></p><p id="cagedWarning" class="muted"></p><div class="boardwrap"><div class="board" id="cagedBoard"></div></div><p class="muted">CAGED shapes are based on standard guitar tuning. Some chord positions extend beyond fret 12; those frets are not displayed. Some minor forms use partial voicings or muted strings.</p></div></section><script>
+const tuningSelect=document.getElementById("tuningSelect"),tuningNotes=document.getElementById("tuningNotes"),sr=document.getElementById("sr"),st=document.getElementById("st"),sname=document.getElementById("sname"),scaleNoteOrder=document.getElementById("scaleNoteOrder"),scaleDegreeOrder=document.getElementById("scaleDegreeOrder"),sb=document.getElementById("sb"),cr=document.getElementById("cr"),ct=document.getElementById("ct"),cn=document.getElementById("cn"),cnotes=document.getElementById("cnotes"),cf=document.getElementById("cf"),cb=document.getElementById("cb"),hr=document.getElementById("hr"),ht=document.getElementById("ht"),hf=document.getElementById("hf"),pitch=document.getElementById("pitch"),freq=document.getElementById("freq"),status=document.getElementById("status"),start=document.getElementById("start"),clear=document.getElementById("clear"),heard=document.getElementById("heard"),hb=document.getElementById("hb"),prKey=document.getElementById("prKey"),prScale=document.getElementById("prScale"),targetStrings=document.getElementById("targetStrings"),targetNote=document.getElementById("targetNote"),targetInstruction=document.getElementById("targetInstruction"),newTarget=document.getElementById("newTarget"),revealTarget=document.getElementById("revealTarget"),targetAnswer=document.getElementById("targetAnswer"),targetBoard=document.getElementById("targetBoard"),riffKey=document.getElementById("riffKey"),riffScale=document.getElementById("riffScale"),riffDiff=document.getElementById("riffDiff"),riffChallenge=document.getElementById("riffChallenge"),newRiff=document.getElementById("newRiff"),showRiffNotes=document.getElementById("showRiffNotes"),riffAnswer=document.getElementById("riffAnswer"),riffNoteChips=document.getElementById("riffNoteChips"),riffBoard=document.getElementById("riffBoard"),moveKey=document.getElementById("moveKey"),moveScale=document.getElementById("moveScale"),movePair=document.getElementById("movePair"),moveChallenge=document.getElementById("moveChallenge"),newMove=document.getElementById("newMove"),revealMove=document.getElementById("revealMove"),moveAnswer=document.getElementById("moveAnswer"),moveBoard=document.getElementById("moveBoard"),speedKey=document.getElementById("speedKey"),speedScale=document.getElementById("speedScale"),subdivision=document.getElementById("subdivision"),speedChallenge=document.getElementById("speedChallenge"),newSpeed=document.getElementById("newSpeed"),showSpeed=document.getElementById("showSpeed"),speedAnswer=document.getElementById("speedAnswer"),speedBoard=document.getElementById("speedBoard"),bpmText=document.getElementById("bpmText"),bpm=document.getElementById("bpm"),metroLight=document.getElementById("metroLight"),metroStart=document.getElementById("metroStart"),metroStop=document.getElementById("metroStop"),minusBpm=document.getElementById("minusBpm"),plusBpm=document.getElementById("plusBpm"),circleWheel=document.getElementById("circleWheel"),circleKey=document.getElementById("circleKey"),circleTitle=document.getElementById("circleTitle"),circleNotes=document.getElementById("circleNotes"),circleRelative=document.getElementById("circleRelative"),circleChords=document.getElementById("circleChords");
+
+const N=["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
+const GUITAR_TUNINGS={
+ "Standard":[4,9,2,7,11,4],"Half Step Down":[3,8,1,6,10,3],"D Standard":[2,7,0,5,9,2],
+ "C♯ Standard":[1,6,11,4,8,1],"C Standard":[0,5,10,3,7,0],"Drop D":[2,9,2,7,11,4],
+ "Drop C♯":[1,8,1,6,10,3],"Drop C":[0,7,0,5,9,2],"Drop B":[11,6,11,4,8,1],
+ "Drop A♯ / B♭":[10,5,10,3,7,0],"Drop A":[9,4,9,2,6,11]
+};
+const BASS_TUNINGS={
+ "Standard":[4,9,2,7],"Half Step Down":[3,8,1,6],"D Standard":[2,7,0,5],
+ "C♯ Standard":[1,6,11,4],"C Standard":[0,5,10,3],"Drop D":[2,9,2,7],
+ "Drop C♯":[1,8,1,6],"Drop C":[0,7,0,5],"Drop B":[11,6,11,4]
+};
+let instrument="guitar",TUNINGS=GUITAR_TUNINGS;
+let O=[...TUNINGS.Standard],SN=O.map(n=>N[n]);
+const S={"Major":[0,2,4,5,7,9,11],"Natural Minor":[0,2,3,5,7,8,10],"Major Pentatonic":[0,2,4,7,9],"Minor Pentatonic":[0,3,5,7,10],"Dorian":[0,2,3,5,7,9,10],"Phrygian":[0,1,3,5,7,8,10],"Lydian":[0,2,4,6,7,9,11],"Mixolydian":[0,2,4,5,7,9,10],"Locrian":[0,1,3,5,6,8,10]};
+const C={"Major":["",[0,4,7],"1-3-5"],"Minor":["m",[0,3,7],"1-♭3-5"],"7":["7",[0,4,7,10],"1-3-5-♭7"],"Major 7":["maj7",[0,4,7,11],"1-3-5-7"],"Minor 7":["m7",[0,3,7,10],"1-♭3-5-♭7"],"Sus2":["sus2",[0,2,7],"1-2-5"],"Sus4":["sus4",[0,5,7],"1-4-5"],"Add2":["add2",[0,2,4,7],"1-2-3-5"],"Add9":["add9",[0,4,7,14],"1-3-5-9"],"Minor Add9":["madd9",[0,3,7,14],"1-♭3-5-9"],"6":["6",[0,4,7,9],"1-3-5-6"],"Minor 6":["m6",[0,3,7,9],"1-♭3-5-6"],"9":["9",[0,4,7,10,14],"1-3-5-♭7-9"],"Major 9":["maj9",[0,4,7,11,14],"1-3-5-7-9"],"Minor 9":["m9",[0,3,7,10,14],"1-♭3-5-♭7-9"],"Diminished":["dim",[0,3,6],"1-♭3-♭5"],"Augmented":["aug",[0,4,8],"1-3-♯5"],"Power 5":["5",[0,7],"1-5"]};
+function fill(id,a){document.getElementById(id).innerHTML=a.map(x=>`<option>${x}</option>`).join("")}
+function notes(root,type){let r=N.indexOf(root);return S[type].map(i=>N[(r+i)%12])}
+function board(id,a,root){let h='<div class="row"><div class="cell name"></div>'+Array.from({length:12},(_,i)=>`<div class="cell name">${i+1}</div>`).join("")+'</div>';[...Array(O.length).keys()].reverse().forEach(i=>{let strLabel=(i===O.length-1&&SN[i]==="E")?"e":SN[i];h+=`<div class="row"><div class="cell name">${strLabel}</div>`;for(let f=1;f<=12;f++){let n=N[(O[i]+f)%12],x=a.includes(n);h+=`<div class="cell ${x?"hit":""} ${x&&n===root?"root":""}"><span>${n}</span></div>`}h+="</div>"});document.getElementById(id).innerHTML=h}
+const SCALE_DEGREES={
+"Major":["1","2","3","4","5","6","7"],"Natural Minor":["1","2","♭3","4","5","♭6","♭7"],
+"Major Pentatonic":["1","2","3","5","6"],"Minor Pentatonic":["1","♭3","4","5","♭7"],
+"Dorian":["1","2","♭3","4","5","6","♭7"],"Phrygian":["1","♭2","♭3","4","5","♭6","♭7"],
+"Lydian":["1","2","3","♯4","5","6","7"],"Mixolydian":["1","2","3","4","5","6","♭7"],
+"Locrian":["1","♭2","♭3","4","♭5","♭6","♭7"]};
+function updateScaleFormula(){
+ let ints=S[st.value]||[],root=N.indexOf(sr.value);
+ scaleNoteOrder.textContent=ints.map(x=>N[(root+x)%12]).join("  —  ");
+ scaleDegreeOrder.textContent=(SCALE_DEGREES[st.value]||[]).join("  —  ");
+}
+function scales(){updateScaleFormula();let a=notes(sr.value,st.value);sname.textContent=sr.value+" "+st.value;board("sb",a,sr.value)}
+function chords(){let d=C[ct.value],r=N.indexOf(cr.value),a=[...new Set(d[1].map(i=>N[(r+i)%12]))];cn.textContent=cr.value+d[0];cnotes.innerHTML=a.map(x=>`<span class="chip">${x}</span>`).join("");cf.textContent=d[2];board("cb",a,cr.value)}
+let stream=null,ctx=null,an=null,raf=null,melody=[],candidate="",candidateSince=0,lastAccepted="",lastAcceptedAt=0,lastVoicedAt=0,lastFreq=0;
+let rawMelody=[], melodyKey="E", melodyScale="Natural Minor";
+let recorder=null, recordingChunks=[], latestAudio=null, recordingReady=Promise.resolve();
+const ideaName=document.getElementById("ideaName"), saveIdea=document.getElementById("saveIdea"),saveStatus=document.getElementById("saveStatus"),savedIdeas=document.getElementById("savedIdeas");
+let savedMessageTimer=null;
+function showSavedConfirmation(){
+  if(savedMessageTimer!==null)clearTimeout(savedMessageTimer);
+  saveStatus.textContent="✓ Saved!";
+  savedMessageTimer=setTimeout(()=>{
+    if(saveStatus.textContent==="✓ Saved!")saveStatus.textContent="";
+    savedMessageTimer=null;
+  },2500);
+}
+const startButton=document.getElementById("start");
+const stopButton=document.getElementById("stop");
+const clearButton=document.getElementById("clear");
+let listening=false;
+
+// Hum-a-Riff v5:
+// - A note must remain stable long enough to count.
+// - Fast pitch slides are treated as transitions, not extra notes.
+// - A small breath/gap creates a new note event, so repeated notes can still be captured.
+const STABLE_MS=110;
+const FAST_STABLE_MS=22;
+const FAST_NOTE_FRAMES=2; // Two consistent pitch observations, even when a note is brief.
+let candidateFrames=0;
+const GAP_MS=65;
+const REPEAT_GAP_MS=55;
+const SLIDE_CENTS=75;
+const SETTLED_CENTS=38;
+function correlate(b,rate){
+ let rms=Math.sqrt(b.reduce((s,x)=>s+x*x,0)/b.length);
+ if(rms<.025)return {freq:-1,rms};
+ let best=0,off=-1;
+ for(let o=35;o<800;o++){let c=0;for(let i=0;i<b.length-o;i++)c+=b[i]*b[i+o];if(c>best){best=c;off=o}}
+ return {freq:off>0?rate/off:-1,rms};
+}
+function midiFloat(f){return 69+12*Math.log2(f/440)}
+function detected(f){
+ let mf=midiFloat(f),m=Math.round(mf);
+ if(hf.value==="raw")return {note:N[(m%12+12)%12],midi:m,cents:(mf-m)*100};
+ let allowed=notes(hr.value,ht.value),bestMidi=m,bestDist=999;
+ for(let d=-2;d<=2;d++){let q=m+d,x=N[(q%12+12)%12];if(allowed.includes(x)){let dist=Math.abs(mf-q);if(dist<bestDist){bestDist=dist;bestMidi=q}}}
+ return {note:N[(bestMidi%12+12)%12],midi:bestMidi,cents:(mf-bestMidi)*100};
+}
+function transposeMelody(){
+ const oldNotes=notes(melodyKey,melodyScale),newNotes=notes(hr.value,ht.value);
+ const semis=(N.indexOf(hr.value)-N.indexOf(melodyKey)+12)%12;
+ melody=rawMelody.map(n=>{
+   let i=oldNotes.indexOf(n);
+   if(i>=0 && oldNotes.length===newNotes.length)return newNotes[i];
+   return N[(N.indexOf(n)+semis)%12];
+ });
+}
+function drawMelody(){heard.innerHTML=melody.length?melody.map(x=>`<span class="chip">${x}</span>`).join(""):"Your melody will appear here.";board("hb",[...new Set(melody)],hr.value)}
+function acceptNote(n,now,hadGap){
+ let same=lastAccepted===n;
+ if(!same || hadGap || now-lastAcceptedAt>420){
+   rawMelody.push(n);transposeMelody();lastAccepted=n;lastAcceptedAt=now;drawMelody();
+ }
+}
+function loop(){
+ if(!listening||!an||!ctx)return;
+ let b=new Float32Array(an.fftSize);an.getFloatTimeDomainData(b);
+ let result=correlate(b,ctx.sampleRate),f=result.freq,now=performance.now();
+ if(f>65&&f<1400){
+   let gap=lastVoicedAt?now-lastVoicedAt:999;
+   let hadGap=gap>=GAP_MS;
+   lastVoicedAt=now;
+   let d=detected(f),n=d.note;
+   pitch.textContent=n;freq.textContent=f.toFixed(1)+" Hz";
+   let slide=lastFreq>0?Math.abs(1200*Math.log2(f/lastFreq)):0;
+   lastFreq=f;
+
+   // Adaptive acceptance:
+   // A smooth glide is ignored while it is moving quickly.
+   // Once the voice lands close to a note center, a fast intentional note
+   // can be accepted much sooner than a wobbly/held transition.
+   let settled=Math.abs(d.cents)<=SETTLED_CENTS;
+   let fastIntent=hadGap || (settled && slide<=SLIDE_CENTS);
+   let needed=fastIntent?FAST_STABLE_MS:STABLE_MS;
+
+   if(slide>SLIDE_CENTS && !hadGap && !settled){
+     candidate="";candidateSince=0;candidateFrames=0;
+   }else if(n!==candidate){
+     candidate=n;candidateSince=now;candidateFrames=1;
+   }else {
+     candidateFrames++;
+     if(candidateSince && candidateFrames>=FAST_NOTE_FRAMES && now-candidateSince>=needed){
+     let repeatReady=(lastAccepted===n && hadGap && gap>=REPEAT_GAP_MS);
+     if(lastAccepted!==n || repeatReady || now-lastAcceptedAt>300) acceptNote(n,now,repeatReady);
+     candidateSince=0;candidateFrames=0;
+     }
+   }
+ }else{
+   pitch.textContent="—";freq.textContent="Listening…";
+   if(lastVoicedAt && now-lastVoicedAt>=GAP_MS){candidate="";candidateSince=0;candidateFrames=0;lastFreq=0;}
+ }
+ if(listening)raf=requestAnimationFrame(loop)
+}
+startButton.onclick=async()=>{
+  if(listening)return;
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    latestAudio=null;recordingChunks=[];
+    if(window.MediaRecorder){
+      try{recorder=new MediaRecorder(stream);recorder.ondataavailable=e=>{if(e.data.size)recordingChunks.push(e.data)};
+      recordingReady=new Promise(resolve=>{recorder.onstop=()=>{latestAudio=recordingChunks.length?new Blob(recordingChunks,{type:recorder.mimeType||recordingChunks[0].type}):null;resolve()}});
+      recorder.start();
+    }catch(e){recorder=null;recordingReady=Promise.resolve();saveStatus.textContent="Audio recording unavailable in this browser; notes can still be saved."}
+    }else{saveStatus.textContent="Audio recording unavailable in this browser; notes can still be saved."}
+    melodyKey=hr.value;melodyScale=ht.value;
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    an=ctx.createAnalyser();
+    an.fftSize=2048; // Retain low-note accuracy; fast acceptance now needs fewer frames.
+    ctx.createMediaStreamSource(stream).connect(an);
+    listening=true;
+    status.textContent="Listening — hum the riff naturally, even quickly. Slides are filtered while clear note changes are captured faster.";
+    startButton.disabled=true;
+    stopButton.disabled=false;
+    loop();
+  }catch(e){
+    listening=false;
+    status.textContent="Microphone could not start. Check browser microphone permission and try again.";
+    startButton.disabled=false;
+    stopButton.disabled=true;
+  }
+};
+stopButton.onclick=async()=>{
+  listening=false;
+  if(raf!==null){cancelAnimationFrame(raf);raf=null;}
+  if(recorder && recorder.state!=="inactive")recorder.stop();
+  if(stream){stream.getTracks().forEach(track=>track.stop());stream=null;}
+  if(ctx){try{await ctx.close();}catch(e){}ctx=null;}
+  an=null;
+  await recordingReady;
+  if(latestAudio)saveStatus.textContent="Audio ready. Name and save your riff.";
+  candidate="";
+  candidateSince=0;
+  candidateFrames=0;
+  lastAccepted="";
+  lastAcceptedAt=0;
+  lastVoicedAt=0;
+  lastFreq=0;
+  pitch.textContent="—";
+  freq.textContent="Microphone off";
+  status.textContent="Stopped. Press Start Listening to try another riff.";
+  startButton.disabled=false;
+  stopButton.disabled=true;
+};
+clearButton.onclick=()=>{melody=[];rawMelody=[];latestAudio=null;recordingChunks=[];drawMelody();saveStatus.textContent="Notes cleared."};
+hr.onchange=()=>{transposeMelody();drawMelody()};
+ht.onchange=()=>{transposeMelody();drawMelody()};
+hf.onchange=drawMelody;
+// IndexedDB stores audio and note sequences locally, without uploading them.
+const dbReady=new Promise(resolve=>{
+ if(!window.indexedDB){resolve(null);return}
+ try{let req=indexedDB.open("FretboardCoachIdeas",1);
+ req.onupgradeneeded=()=>req.result.createObjectStore("ideas",{keyPath:"id"});
+ req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve(null);
+ }catch(e){resolve(null)}
+});
+async function getIdeas(){let db=await dbReady;if(!db)return [];
+ return new Promise(resolve=>{let req=db.transaction("ideas").objectStore("ideas").getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>resolve([])})}
+async function showIdeas(){let items=(await getIdeas()).sort((a,b)=>b.id-a.id);savedIdeas.replaceChildren();
+ if(!items.length){savedIdeas.textContent="No saved ideas yet.";return}
+ items.forEach(item=>{let wrap=document.createElement("details");wrap.className="box";wrap.style.marginBottom="10px";
+ let summary=document.createElement("summary");summary.style.cssText="cursor:pointer;padding:8px 0;touch-action:manipulation";
+ let title=document.createElement("strong");title.textContent=item.name;summary.appendChild(title);
+ let meta=document.createElement("span");meta.className="muted";meta.style.cssText="display:block;font-size:12px;margin-top:4px";meta.textContent=new Date(item.id).toLocaleString()+" · "+item.key+" "+item.scale;summary.appendChild(meta);wrap.appendChild(summary);
+ let body=document.createElement("div");body.style.padding="8px 0 4px";
+ if(item.audio){let audio=document.createElement("audio");audio.controls=true;audio.style.width="100%";let url=URL.createObjectURL(item.audio);audio.src=url;body.appendChild(audio);wrap.addEventListener("toggle",()=>{if(!wrap.open)audio.pause()})}
+ let sequence=document.createElement("p");sequence.textContent=item.notes.join(" — ")||"No notes detected";body.appendChild(sequence);
+ let load=document.createElement("button");load.textContent="Open notes + fretboard";load.onclick=()=>{hr.value=item.key;ht.value=item.scale;rawMelody=[...item.notes];melodyKey=item.key;melodyScale=item.scale;transposeMelody();drawMelody();document.querySelector('[data-page="hum"]').click();document.getElementById("hb").scrollIntoView({behavior:"smooth",block:"nearest"})};body.appendChild(load);
+ let del=document.createElement("button");del.textContent="Delete";del.style.marginLeft="8px";del.onclick=async()=>{if(!confirm("Delete this saved riff?"))return;let db=await dbReady;if(!db)return;let tx=db.transaction("ideas","readwrite");tx.objectStore("ideas").delete(item.id);tx.oncomplete=showIdeas};body.appendChild(del);
+ wrap.appendChild(body);savedIdeas.appendChild(wrap)
+ })}
+saveIdea.onclick=async()=>{
+ if(listening){saveStatus.textContent="Stop listening before saving.";return}
+ await recordingReady;
+ if(!rawMelody.length&&!latestAudio){saveStatus.textContent="Record or detect a riff first.";return}
+ let db=await dbReady;if(!db){saveStatus.textContent="Local storage unavailable. Open the hosted app in Safari.";return}
+ let item={id:Date.now(),name:ideaName.value.trim()||"Untitled riff",key:hr.value,scale:ht.value,notes:[...melody],audio:latestAudio};
+ try{let tx=db.transaction("ideas","readwrite");tx.objectStore("ideas").put(item);tx.oncomplete=()=>{showSavedConfirmation();showIdeas()};tx.onerror=()=>saveStatus.textContent="Could not save. Check available storage."}catch(e){saveStatus.textContent="Could not save this audio on this device."}
+};showIdeas();
+fill("sr",N);fill("st",Object.keys(S));fill("cr",N);fill("ct",Object.keys(C));fill("hr",N);fill("ht",Object.keys(S));sr.value="C";st.value="Major";cr.value="C";ct.value="Major";hr.value="E";ht.value="Natural Minor";melodyKey=hr.value;melodyScale=ht.value;[sr,st].forEach(x=>x.onchange=scales);[cr,ct].forEach(x=>x.onchange=chords);
+
+
+// CIRCLE OF FIFTHS
+const CK=[["C",["C","D","E","F","G","A","B"]],["G",["G","A","B","C","D","E","F♯"]],["D",["D","E","F♯","G","A","B","C♯"]],["A",["A","B","C♯","D","E","F♯","G♯"]],["E",["E","F♯","G♯","A","B","C♯","D♯"]],["B",["B","C♯","D♯","E","F♯","G♯","A♯"]],["F♯",["F♯","G♯","A♯","B","C♯","D♯","E♯"]],["D♭",["D♭","E♭","F","G♭","A♭","B♭","C"]],["A♭",["A♭","B♭","C","D♭","E♭","F","G"]],["E♭",["E♭","F","G","A♭","B♭","C","D"]],["B♭",["B♭","C","D","E♭","F","G","A"]],["F",["F","G","A","B♭","C","D","E"]]];
+function updateCircle(){
+  const x=CK.find(entry=>entry[0]===circleKey.value)||CK[0], n=x[1];
+  const qualities=["","m","m","","","m","dim"];
+  const minorOrder=[5,6,0,1,2,3,4];
+  circleTitle.textContent=x[0]+" Major";
+  circleNotes.textContent=n.join(" — ");
+  circleRelative.textContent=n[5]+" minor";
+  circleChords.textContent=n.map((v,i)=>v+qualities[i]).join(" — ");
+  document.getElementById("circleMinorChords").textContent=minorOrder.map(i=>n[i]+qualities[i]).join(" — ");
+  [...circleWheel.querySelectorAll("button")].forEach(b=>{
+    const selected=b.dataset.major===x[0];
+    b.style.background=selected?"#5eead4":"#202c45";
+    b.style.color=selected?"#07111b":"#f5f7fb";
+    b.style.borderColor=selected?"#5eead4":"#465574";
+    b.style.fontWeight=selected?"800":"600";
+  });
+}
+function buildCircle(){
+  circleWheel.style.maxWidth="420px";
+  circleWheel.style.width="100%";
+  circleWheel.style.borderRadius="50%";
+  circleWheel.style.background="radial-gradient(circle, #151d31 0 22%, #263750 22.5% 49%, #344b66 49.5% 72%, #151d31 72.5%)";
+  circleWheel.style.border="2px solid #52647f";
+  CK.forEach((x,i)=>{
+    const o=document.createElement("option");o.value=x[0];o.textContent=x[0];circleKey.appendChild(o);
+    const minor=x[1][5]+"m";
+    [[x[0],39,"major"],[minor,25,"minor"]].forEach(([label,radius,ring])=>{
+      const b=document.createElement("button");b.type="button";b.textContent=label;
+      b.dataset.major=x[0];b.setAttribute("aria-label",x[0]+" major, "+minor+" relative minor");
+      const angle=(i*30-90)*Math.PI/180;
+      b.style.cssText=`position:absolute;left:${50+radius*Math.cos(angle)}%;top:${50+radius*Math.sin(angle)}%;transform:translate(-50%,-50%);width:${ring==="major"?"11%":"10%"};height:${ring==="major"?"11%":"10%"};padding:0;border-radius:50%;font-size:clamp(9px,2.8vw,13px);z-index:1`;
+      b.onclick=()=>{circleKey.value=x[0];updateCircle()};circleWheel.appendChild(b);
+    });
+  });
+  const c=document.createElement("div");c.innerHTML="<strong>Circle<br>of Fifths</strong>";
+  c.style.cssText="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;font-size:clamp(10px,3vw,15px);pointer-events:none";
+  circleWheel.appendChild(c);
+  circleKey.onchange=updateCircle;circleKey.value="C";updateCircle();
+}
+
+// GLOBAL INSTRUMENT + TUNING
+const instrumentSelect=document.getElementById("instrumentSelect"),tuningLabelEl=document.getElementById("tuningLabel");
+const customTuning=document.getElementById("customTuning"),customStringControls=document.getElementById("customStringControls");
+let customO=[...GUITAR_TUNINGS.Standard];
+function populateTunings(){
+ TUNINGS=instrument==="bass"?BASS_TUNINGS:GUITAR_TUNINGS;
+ tuningSelect.innerHTML="";
+ [...Object.keys(TUNINGS),"Custom"].forEach(x=>{let o=document.createElement("option");o.value=x;o.textContent=x;tuningSelect.appendChild(o)});
+ tuningSelect.value="Standard";
+}
+function tuningLabel(){return O.map(i=>N[i]).join("  ")}
+function ordinal(n){if(n===1)return"1st";if(n===2)return"2nd";if(n===3)return"3rd";return n+"th"}
+function buildCustomTuning(){
+ customStringControls.innerHTML="";
+ customO.forEach((v,i)=>{
+  let wrap=document.createElement("div"),l=document.createElement("label"),sel=document.createElement("select");
+  let stringNo=customO.length-i;l.textContent=ordinal(stringNo)+(i===0?" (low)":i===customO.length-1?" (high)":"");
+  N.forEach((note,ni)=>{let o=document.createElement("option");o.value=ni;o.textContent=note;sel.appendChild(o)});
+  sel.value=v;sel.onchange=()=>{customO[i]=Number(sel.value);applyTuning()};
+  wrap.append(l,sel);customStringControls.appendChild(wrap);
+ });
+}
+function applyTuning(){
+ O=tuningSelect.value==="Custom"?[...customO]:[...TUNINGS[tuningSelect.value]];
+ SN=O.map(i=>N[i]);tuningNotes.textContent=tuningLabel();
+ scales();chords();drawMelody();
+ [targetAnswer,riffAnswer,moveAnswer,speedAnswer].forEach(x=>x.classList.remove("show"));
+}
+instrumentSelect.onchange=()=>{
+ instrument=instrumentSelect.value;tuningLabelEl.textContent=instrument==="bass"?"Bass tuning":"Guitar tuning";
+ populateTunings();O=[...TUNINGS.Standard];SN=O.map(i=>N[i]);customO=[...O];
+ customTuning.style.display="none";buildCustomTuning();applyTuning();
+};
+tuningSelect.onchange=()=>{
+ if(tuningSelect.value==="Custom"){customO=[...O];buildCustomTuning();customTuning.style.display="block"}
+ else customTuning.style.display="none";
+ applyTuning();
+};
+populateTunings();buildCustomTuning();
+
+// PRACTICE
+["prKey","riffKey","moveKey","speedKey"].forEach(id=>fill(id,N));
+["prScale","riffScale","moveScale","speedScale"].forEach(id=>fill(id,Object.keys(S)));
+prKey.value=riffKey.value=moveKey.value=speedKey.value="C";
+prScale.value=riffScale.value=moveScale.value=speedScale.value="Major";
+
+document.querySelectorAll(".ptab").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".exercise,.ptab").forEach(x=>x.classList.remove("active"));
+ document.getElementById(b.dataset.ex).classList.add("active"); b.classList.add("active");
+});
+
+function stringSubset(code){
+ if(code==="all")return [0,1,2,3,4,5];
+ const map={"6":0,"5":1,"4":2,"3":3,"2":4,"1":5};
+ return code.split("").map(x=>map[x]);
+}
+function practiceBoard(id,activeNotes,root,allowedStrings=null){
+ let h='<div class="row"><div class="cell name"></div>'+Array.from({length:12},(_,i)=>`<div class="cell name">${i+1}</div>`).join("")+'</div>';
+ [...Array(O.length).keys()].reverse().forEach(i=>{let str=(i===O.length-1&&SN[i]==="E")?"e":SN[i];h+=`<div class="row"><div class="cell name">${str}</div>`;
+ for(let f=1;f<=12;f++){let n=N[(O[i]+f)%12],allowed=!allowedStrings||allowedStrings.includes(i),x=allowed&&activeNotes.includes(n);h+=`<div class="cell ${x?"hit":""} ${x&&n===root?"root":""}"><span>${n}</span></div>`}h+="</div>"});
+ document.getElementById(id).innerHTML=h;
+}
+let currentTarget="G";
+function makeTarget(){
+ let a=notes(prKey.value,prScale.value);currentTarget=a[Math.floor(Math.random()*a.length)];
+ targetNote.textContent=currentTarget;
+ let code=targetStrings.value,desc=code==="all"?"all 6 strings":targetStrings.options[targetStrings.selectedIndex].text;
+ targetInstruction.textContent=`Find every ${currentTarget} on ${desc}. Say "${currentTarget}" as you play it.`;
+ targetAnswer.classList.remove("show");
+}
+newTarget.onclick=makeTarget;
+revealTarget.onclick=()=>{practiceBoard("targetBoard",[currentTarget],currentTarget,stringSubset(targetStrings.value));targetAnswer.classList.add("show")};
+[prKey,prScale,targetStrings].forEach(x=>x.onchange=makeTarget);
+
+function makeRiff(){
+ let a=notes(riffKey.value,riffScale.value),d=riffDiff.value,count=d==="easy"?3:d==="hard"?5:4;
+ let startN=a[Math.floor(Math.random()*a.length)],endN=a[Math.floor(Math.random()*a.length)];
+ let extra=d==="easy"?"Use at least 2 strings.":d==="normal"?"Use at least 2 strings and change direction once.":"Use at least 3 strings, include one repeated note, and do not play straight up/down the scale.";
+ riffChallenge.innerHTML=`Create a <b>${count}-note riff</b> in <b>${riffKey.value} ${riffScale.value}</b>.<br>Start on <b>${startN}</b> → finish on <b>${endN}</b>.<br><span class="muted">${extra}</span>`;
+ riffAnswer.classList.remove("show");
+}
+newRiff.onclick=makeRiff;
+showRiffNotes.onclick=()=>{let a=notes(riffKey.value,riffScale.value);riffNoteChips.innerHTML=a.map(x=>`<span class="chip">${x}</span>`).join("");practiceBoard("riffBoard",a,riffKey.value);riffAnswer.classList.add("show")};
+[riffKey,riffScale,riffDiff].forEach(x=>x.onchange=makeRiff);
+
+let moveNote="C";
+function makeMove(){
+ let a=notes(moveKey.value,moveScale.value);moveNote=a[Math.floor(Math.random()*a.length)];
+ let txt=movePair.options[movePair.selectedIndex].text;
+ moveChallenge.innerHTML=`Find <b>${moveNote}</b> on the <b>${txt}</b> strings.<br><span class="muted">Play one location, then jump to another without counting note names in your head.</span>`;
+ moveAnswer.classList.remove("show");
+}
+newMove.onclick=makeMove;
+revealMove.onclick=()=>{practiceBoard("moveBoard",[moveNote],moveNote,stringSubset(movePair.value));moveAnswer.classList.add("show")};
+[moveKey,moveScale,movePair].forEach(x=>x.onchange=makeMove);
+
+function makeSpeed(){
+ let a=notes(speedKey.value,speedScale.value),start=a[Math.floor(Math.random()*a.length)];
+ speedChallenge.innerHTML=`Starting on <b>${start}</b>, play through the notes of <b>${speedKey.value} ${speedScale.value}</b> using <b>${subdivision.value} note${subdivision.value==="1"?"":"s"} per click</b>.<br><span class="muted">Use at least two strings. If it gets sloppy, lower the BPM.</span>`;
+ speedAnswer.classList.remove("show");
+}
+newSpeed.onclick=makeSpeed;
+showSpeed.onclick=()=>{practiceBoard("speedBoard",notes(speedKey.value,speedScale.value),speedKey.value);speedAnswer.classList.add("show")};
+[speedKey,speedScale,subdivision].forEach(x=>x.onchange=makeSpeed);
+
+let metroTimer=null,metroOn=false,audioMetro=null;
+function clickSound(){
+ try{
+  if(!audioMetro)audioMetro=new (window.AudioContext||window.webkitAudioContext)();
+  let osc=audioMetro.createOscillator(),gain=audioMetro.createGain();osc.frequency.value=900;gain.gain.setValueAtTime(.12,audioMetro.currentTime);gain.gain.exponentialRampToValueAtTime(.001,audioMetro.currentTime+.05);osc.connect(gain);gain.connect(audioMetro.destination);osc.start();osc.stop(audioMetro.currentTime+.055);
+ }catch(e){}
+ metroLight.classList.add("on");setTimeout(()=>metroLight.classList.remove("on"),80);
+}
+function startMetro(){stopMetro();metroOn=true;clickSound();metroTimer=setInterval(clickSound,60000/Number(bpm.value))}
+function stopMetro(){metroOn=false;if(metroTimer){clearInterval(metroTimer);metroTimer=null}metroLight.classList.remove("on")}
+bpm.oninput=()=>{bpmText.textContent=bpm.value;if(metroOn)startMetro()};
+metroStart.onclick=startMetro;metroStop.onclick=stopMetro;
+minusBpm.onclick=()=>{bpm.value=Math.max(40,Number(bpm.value)-5);bpmText.textContent=bpm.value;if(metroOn)startMetro()};
+plusBpm.onclick=()=>{bpm.value=Math.min(200,Number(bpm.value)+5);bpmText.textContent=bpm.value;if(metroOn)startMetro()};
+makeTarget();makeRiff();makeMove();makeSpeed();applyTuning();
+
+const menuToggle=document.getElementById("menuToggle"),appMenu=document.getElementById("appMenu");
+function closeAppMenu(){appMenu.hidden=true;document.body.classList.remove("drawer-open");menuToggle.setAttribute("aria-expanded","false")}
+function openAppMenu(){appMenu.hidden=false;document.body.classList.add("drawer-open");menuToggle.setAttribute("aria-expanded","true");document.getElementById("menuClose").focus()}
+menuToggle.addEventListener("click",()=>appMenu.hidden?openAppMenu():closeAppMenu());
+document.getElementById("menuClose").addEventListener("click",closeAppMenu);
+document.getElementById("menuShade").addEventListener("click",closeAppMenu);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!appMenu.hidden){closeAppMenu();menuToggle.focus()}});
+document.getElementById("openSavedRiffs").addEventListener("click",()=>{closeAppMenu();document.querySelectorAll(".page,.tab").forEach(x=>x.classList.remove("active"));document.getElementById("savedRiffsPage").classList.add("active");showIdeas();document.getElementById("savedRiffsPage").scrollIntoView({block:"start"})});
+document.getElementById("backToHum").addEventListener("click",()=>document.querySelector('[data-page="hum"]').click());
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{closeAppMenu();document.querySelectorAll(".page,.tab").forEach(x=>x.classList.remove("active"));document.getElementById(b.dataset.page).classList.add("active");b.classList.add("active")});scales();chords();drawMelody();
+
+buildCircle();
+
+// CAGED: independent feature; leave the working v7.2 navigation untouched.
+(function(){
+ const forms={C:{root:0,frets:[-1,3,2,0,1,0]},A:{root:9,frets:[-1,0,2,2,2,0]},G:{root:7,frets:[3,2,0,0,0,3]},E:{root:4,frets:[0,2,2,1,0,0]},D:{root:2,frets:[-1,-1,0,2,3,2]}};
+ const rootEl=document.getElementById('cagedRoot'),shapeEl=document.getElementById('cagedShape'),scaleEl=document.getElementById('cagedScale');
+ const boardEl=document.getElementById('cagedBoard'),details=document.getElementById('cagedDetails'),qualityEl=document.getElementById('cagedQuality');
+ function render(){
+  const root=N.indexOf(rootEl.value),shape=shapeEl.value,form=forms[shape];
+  const minor=qualityEl.value==='minor';
+  const shift=(root-form.root+12)%12;
+  // Lower each major third by one fret for minor. An open third cannot be lowered: mute it.
+  const frets=form.frets.map((f,s)=>{
+   if(f<0)return -1;
+   const isThird=(GUITAR_TUNINGS.Standard[s]+f)%12===(form.root+4)%12;
+   if(minor&&isThird){if(f===0&&shift===0)return -1;return f+shift-1;}
+   return f+shift;
+  });
+  const chord=[root,(root+(minor?3:4))%12,(root+7)%12];
+  const steps=scaleEl.value==='major'?(minor?[0,2,3,5,7,8,10]:[0,2,4,5,7,9,11]):(minor?[0,3,5,7,10]:[0,2,4,7,9]);
+  const scaleLabel=minor?(scaleEl.value==='major'?'Natural minor scale':'Minor pentatonic'):(scaleEl.value==='major'?'Major scale':'Major pentatonic');
+  const notes=new Set(steps.map(x=>(root+x)%12));
+  const fretted=frets.filter(f=>f>=0),min=Math.min(...fretted),max=Math.max(...fretted);
+  // Keep the selected form visible and display nearby notes, rather than the entire neck.
+  const from=Math.max(0,min-1),to=Math.min(12,Math.max(max+2,from+4));
+  const standard=instrument==='guitar'&&O.length===6&&O.every((n,i)=>n===GUITAR_TUNINGS.Standard[i]);
+  document.getElementById('cagedTitle').textContent=rootEl.value+' '+qualityEl.value+' — '+shape+' form';
+  details.textContent='Chord: '+chord.map(n=>N[n]).join(' · ')+(minor?' (1 · ♭3 · 5). ':' (1 · 3 · 5). ')+'Solo notes ('+scaleLabel+'): '+(scaleEl.value==='off'?'hidden':steps.map(x=>N[(root+x)%12]).join(' · '))+'.';
+  document.getElementById('cagedWarning').textContent=standard?'The brighter outlined notes form the chord. Other highlighted notes are nearby soloing options.':'CAGED fingerings and solo overlays require Guitar → Standard tuning.';
+  let html='<div class="row"><div class="cell name"></div>';
+  for(let f=1;f<=12;f++)html+='<div class="cell">'+f+'</div>';
+  html+='</div>';
+  for(let s=5;s>=0;s--){
+   html+='<div class="row"><div class="cell name">'+['E','A','D','G','B','e'][s]+(frets[s]<0?' ×':'')+'</div>';
+   for(let f=1;f<=12;f++){
+    const pitch=(GUITAR_TUNINGS.Standard[s]+f)%12;
+    const isChord=standard&&frets[s]===f;
+    const inArea=f>=from&&f<=to;
+    const isSolo=standard&&scaleEl.value!=='off'&&inArea&&notes.has(pitch);
+    const cls=isChord?'hit '+(pitch===root?'root':'')+' caged-chord':isSolo?'hit caged-solo '+(pitch===root?'caged-solo-root':''):'';
+    html+='<div class="cell '+cls+'"><span>'+(isChord||isSolo?N[pitch]:'')+'</span></div>';
+   }
+   html+='</div>';
+  }
+  boardEl.innerHTML=html;
+  if(max>12)details.textContent+=' Part of this chord form lies beyond fret 12.';
+ }
+ rootEl.addEventListener('change',render);qualityEl.addEventListener('change',()=>{const opts=scaleEl.options;opts[0].textContent=qualityEl.value==='minor'?'Minor pentatonic':'Major pentatonic';opts[1].textContent=qualityEl.value==='minor'?'Natural minor scale':'Major scale';render()});shapeEl.addEventListener('change',render);scaleEl.addEventListener('change',render);
+ document.querySelectorAll('.tab').forEach(b=>{if(b.dataset.page==='caged')b.addEventListener('click',render)});
+ document.getElementById('instrumentSelect').addEventListener('change',render);
+ document.getElementById('tuningSelect').addEventListener('change',render);
+ render();
+})();
+</script></body></html>
