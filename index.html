@@ -847,19 +847,48 @@ document.querySelector('.tabs').addEventListener('click',event=>{
  const tab=event.target.closest('.tab[data-page]');
  if(tab)activateMainPage(tab.dataset.page);
 });
+// Restore from the last user-selected tab. The HTML starts on Scales, so on a
+// cold Safari process restart the initial active classes are NOT reliable.
+let lastResumeCheck=0;
 function restoreMainPage(){
+ if(document.hidden)return;
  // Keep secondary views (Settings, Saved Songs, Saved Riffs) open on resume.
  const otherView=document.querySelector('.page.active:not(#theory):not(#scales):not(#chords):not(#caged):not(#circle):not(#practice):not(#songwriter):not(#hum)');
  if(otherView)return;
  let desired='';try{desired=localStorage.getItem(activePageStorage)||''}catch(e){}
- const selected=document.querySelector('.tabs .tab.active');
- // On an in-memory resume, the visible selection is authoritative; on a cold
- // start use the saved selection rather than resetting to the default Scales.
- if(selected&&selected.dataset.page&&document.getElementById(selected.dataset.page)?.classList.contains('active'))desired=selected.dataset.page;
- if(desired&&!activateMainPage(desired,{persist:false}))activateMainPage('scales',{persist:false});
+ if(!desired){
+  const selected=document.querySelector('.tabs .tab.active');
+  desired=selected?.dataset.page||'scales';
+ }
+ const panel=document.getElementById(desired);
+ const tab=document.querySelector('.tabs .tab[data-page="'+desired+'"]');
+ if(!panel||!tab||(desired==='caged'&&instrument==='bass'))return;
+ // Only change navigation if it is inconsistent; avoid interrupting active work.
+ if(!panel.classList.contains('active')||!tab.classList.contains('active')){
+  activateMainPage(desired,{persist:false});
+ }
 }
-window.addEventListener('pageshow',restoreMainPage);
-window.addEventListener('focus',()=>{if(!document.hidden)restoreMainPage()});
+function resumeSafariView(){
+ if(document.hidden)return;
+ const now=Date.now();
+ if(now-lastResumeCheck<100)return;
+ lastResumeCheck=now;
+ reconcileAfterSafariResume();
+ restoreMainPage();
+ // iOS Safari can show a cached compositor snapshot after a force-close.
+ // Request a fresh layout/paint without reloading or discarding user state.
+ requestAnimationFrame(()=>{
+  if(document.hidden)return;
+  document.documentElement.getBoundingClientRect();
+  // Read layout, then let the browser paint the restored document.
+  requestAnimationFrame(()=>{
+   if(!document.hidden)restoreMainPage();
+  });
+ });
+}
+window.addEventListener('pageshow',resumeSafariView);
+window.addEventListener('focus',resumeSafariView);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)resumeSafariView()});
 scales();chords();drawMelody();
 // A cold start has default HTML classes, so restore the saved tab explicitly.
 try{const last=localStorage.getItem(activePageStorage);if(last)activateMainPage(last,{persist:false})}catch(e){}
